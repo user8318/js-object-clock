@@ -1,12 +1,28 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
+      :root {
+        color-scheme: dark;
+        --background: #121314;
+        --foreground: #bbbebf;
+        --keyword: #ff7b72;
+        --local-variable: #79c0ff;
+        --operator: #d4d4d4;
+        --punctuation: #bbbebf;
+        --bracket: #ffd700;
+        --object-key: #c9d1d9;
+        --number: #b5cea8;
+        --string: #a5d6ff;
+        --panel-background: #202122;
+        --panel-border: #2a2b2c;
+        --muted: #8c8c8c;
+        --accent: #3994bcb3;
+        --hover: #ffffff14;
+        --shadow: rgba(0, 0, 0, 0.36);
+      }
       html,
       body {
         height: 100%;
@@ -16,38 +32,234 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: #1f1f1f;
+        background-color: var(--background);
+        color: var(--foreground);
         font-family: Consolas, "Courier New", monospace;
+        font-size: clamp(0.75rem, 4vmin, 4rem);
       }
       .item:before {
         content: "\00A0\00A0";
       }
       .keyword {
-        color: #569cd6;
+        color: var(--keyword);
       }
       .local-variable {
-        color: #4fc1ff;
+        color: var(--local-variable);
       }
-      .operator,
+      .operator {
+        color: var(--operator);
+      }
       .comma,
       .semicolon {
-        color: #d4d4d4;
+        color: var(--punctuation);
       }
       .bracket {
-        color: #ffd700;
+        color: var(--bracket);
       }
       .object-key {
-        color: #9cdcfe;
+        color: var(--object-key);
       }
       .number {
-        color: #b5cea8;
+        color: var(--number);
       }
       .string {
-        color: #ce9178;
+        color: var(--string);
+      }
+      .theme-switcher {
+        position: fixed;
+        z-index: 1;
+        top: 1rem;
+        right: 1rem;
+        color: var(--foreground);
+        font:
+          0.875rem/1.4 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe WPC",
+          "Segoe UI",
+          "Microsoft YaHei",
+          system-ui,
+          sans-serif;
+      }
+      .theme-toggle {
+        padding: 0.5em 0.75em;
+        border: 0.0625rem solid var(--panel-border);
+        border-radius: 0.375rem;
+        background: var(--panel-background);
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        opacity: 0.72;
+      }
+      .theme-toggle:hover,
+      .theme-toggle:focus-visible {
+        opacity: 1;
+      }
+      .theme-panel {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        width: min(22.5rem, calc(100vw - 2rem));
+        max-height: calc(100vh - 4.75rem);
+        max-height: calc(100dvh - 4.75rem);
+        box-sizing: border-box;
+        overflow-y: auto;
+        padding: 0.75rem;
+        border: 0.0625rem solid var(--panel-border);
+        border-radius: 0.5rem;
+        background: var(--panel-background);
+        box-shadow: 0 0.5rem 1.75rem var(--shadow);
+        color: var(--foreground);
+      }
+      .theme-panel[hidden] {
+        display: none;
+      }
+      .theme-panel h2 {
+        margin: 0 0 0.625rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+      .theme-panel fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      .theme-panel legend {
+        padding: 0;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+      .theme-panel .theme-system {
+        padding-bottom: 0.5rem;
+        border-bottom: 0.0625rem solid var(--panel-border);
+      }
+      .theme-columns {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      .theme-column {
+        min-width: 0;
+      }
+      .theme-system .theme-options,
+      .theme-column .theme-options {
+        grid-template-columns: 1fr;
+      }
+      .theme-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.25rem;
+        margin-top: 0.375rem;
+      }
+      .theme-option {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 0.4375rem;
+        padding: 0.375rem;
+        border-radius: 0.3125rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+      }
+      .theme-option:hover {
+        background: var(--hover);
+      }
+      .theme-option input {
+        flex: 0 0 auto;
+        margin: 0;
+        accent-color: var(--accent);
+      }
+      .theme-option input:checked + .theme-preview {
+        outline: 0.125rem solid var(--accent);
+        outline-offset: 0.0625rem;
+      }
+      .theme-preview {
+        display: grid;
+        flex: 0 0 1.875rem;
+        width: 1.875rem;
+        height: 1.375rem;
+        place-items: center;
+        border: 0.0625rem solid var(--preview-border);
+        border-radius: 0.25rem;
+        background: var(--preview-background);
+        color: var(--preview-foreground);
+        font:
+          600 0.6875rem/1 Consolas,
+          "Courier New",
+          monospace;
+      }
+      .theme-preview::first-letter {
+        color: var(--preview-keyword);
+      }
+      .theme-option-text {
+        min-width: 0;
+      }
+      .theme-option-text small {
+        display: block;
+        margin-top: 0.125rem;
+        color: var(--muted);
+        font-size: 0.625rem;
+      }
+      @media (max-width: 30rem) {
+        .theme-switcher {
+          top: 0.75rem;
+          right: 0.75rem;
+        }
       }
     </style>
   </head>
   <body>
+    <div class="theme-switcher">
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+        aria-controls="themePanel"
+      >
+        <span data-i18n="theme">主题</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <section
+        class="theme-panel"
+        id="themePanel"
+        role="dialog"
+        aria-label="选择主题"
+        hidden
+      >
+        <h2 data-i18n="chooseTheme">选择主题</h2>
+        <fieldset class="theme-system">
+          <legend data-i18n="displayMode">显示模式</legend>
+          <div class="theme-options">
+            <label class="theme-option">
+              <input type="radio" name="theme" value="system" />
+              <span
+                class="theme-preview"
+                data-theme-preview="system"
+                aria-hidden="true"
+                >Aa</span
+              >
+              <span class="theme-option-text">
+                <span data-i18n="system">跟随系统</span>
+                <small id="systemThemeStatus"></small>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="theme-columns">
+          <fieldset class="theme-column" data-theme-group="light">
+            <legend data-i18n="light">浅色</legend>
+            <div class="theme-options"></div>
+          </fieldset>
+          <fieldset class="theme-column" data-theme-group="dark">
+            <legend data-i18n="dark">深色</legend>
+            <div class="theme-options"></div>
+          </fieldset>
+        </div>
+      </section>
+    </div>
     <div>
       <div>
         <span class="keyword">const</span>
@@ -72,15 +284,277 @@
       document.getElementById("clock").innerHTML = items
         .map(
           ({ key, type }) =>
-            `<div class="item"><span class="object-key">${key}:</span>&nbsp;<span id="${key}" class="${type}"></span><span class="comma">,</span></div>`
+            `<div class="item"><span class="object-key">${key}:</span>&nbsp;<span id="${key}" class="${type}"></span><span class="comma">,</span></div>`,
         )
         .join("");
-      function setFontSize() {
-        const minSide = Math.min(window.innerWidth, window.innerHeight);
-        document.documentElement.style.fontSize = minSide * 0.04 + "px";
+      const themes = {
+        light: {
+          background: "#FFFFFF",
+          foreground: "#000000",
+          keyword: "#0000FF",
+          localVariable: "#000000",
+          operator: "#000000",
+          punctuation: "#000000",
+          bracket: "#0431FAFF",
+          objectKey: "#000000",
+          number: "#098658",
+          string: "#A31515",
+          panelBackground: "#F3F3F3",
+          panelBorder: "rgba(97, 97, 97, 0.2)",
+          muted: "#717171",
+          accent: "#0090F1",
+          hover: "#F0F0F0",
+          shadow: "rgba(0, 0, 0, 0.16)",
+        },
+        "light-modern": {
+          background: "#FFFFFF",
+          foreground: "#3B3B3B",
+          keyword: "#0000FF",
+          localVariable: "#0070C1",
+          operator: "#000000",
+          punctuation: "#3B3B3B",
+          bracket: "#0431FAFF",
+          objectKey: "#001080",
+          number: "#098658",
+          string: "#A31515",
+          panelBackground: "#F8F8F8",
+          panelBorder: "#E5E5E5",
+          muted: "#3B3B3B",
+          accent: "#005FB8",
+          hover: "#F2F2F2",
+          shadow: "rgba(0, 0, 0, 0.16)",
+        },
+        "2026-light": {
+          background: "#FFFFFF",
+          foreground: "#202020",
+          keyword: "#CF222E",
+          localVariable: "#0550AE",
+          operator: "#000000",
+          punctuation: "#202020",
+          bracket: "#0431FAFF",
+          objectKey: "#1F2328",
+          number: "#098658",
+          string: "#0A3069",
+          panelBackground: "#FAFAFD",
+          panelBorder: "#F0F1F2",
+          muted: "#606060",
+          accent: "#0069CC",
+          hover: "#00000014",
+          shadow: "#00000000",
+        },
+        dark: {
+          background: "#1E1E1E",
+          foreground: "#D4D4D4",
+          keyword: "#569CD6",
+          localVariable: "#D4D4D4",
+          operator: "#D4D4D4",
+          punctuation: "#D4D4D4",
+          bracket: "#FFD700",
+          objectKey: "#D4D4D4",
+          number: "#B5CEA8",
+          string: "#CE9178",
+          panelBackground: "#252526",
+          panelBorder: "rgba(204, 204, 204, 0.2)",
+          muted: "rgba(204, 204, 204, 0.7)",
+          accent: "#007FD4",
+          hover: "#2A2D2E",
+          shadow: "rgba(0, 0, 0, 0.36)",
+        },
+        "dark-modern": {
+          background: "#1F1F1F",
+          foreground: "#CCCCCC",
+          keyword: "#569CD6",
+          localVariable: "#4FC1FF",
+          operator: "#D4D4D4",
+          punctuation: "#CCCCCC",
+          bracket: "#FFD700",
+          objectKey: "#9CDCFE",
+          number: "#B5CEA8",
+          string: "#CE9178",
+          panelBackground: "#202020",
+          panelBorder: "#2B2B2B",
+          muted: "#9D9D9D",
+          accent: "#0078D4",
+          hover: "#2A2D2E",
+          shadow: "rgba(0, 0, 0, 0.36)",
+        },
+        "2026-dark": {
+          background: "#121314",
+          foreground: "#BBBEBF",
+          keyword: "#FF7B72",
+          localVariable: "#79C0FF",
+          operator: "#D4D4D4",
+          punctuation: "#BBBEBF",
+          bracket: "#FFD700",
+          objectKey: "#C9D1D9",
+          number: "#B5CEA8",
+          string: "#A5D6FF",
+          panelBackground: "#202122",
+          panelBorder: "#2A2B2C",
+          muted: "#8C8C8C",
+          accent: "#3994BCB3",
+          hover: "#FFFFFF14",
+          shadow: "rgba(0, 0, 0, 0.36)",
+        },
+      };
+      const chinese = (navigator.languages?.[0] || navigator.language || "")
+        .toLowerCase()
+        .startsWith("zh");
+      const text = chinese
+        ? {
+            theme: "主题",
+            chooseTheme: "选择主题",
+            displayMode: "显示模式",
+            system: "跟随系统",
+            currentTheme: "选择主题，当前：",
+            current: "当前：",
+            light: "浅色",
+            "light-modern": "现代浅色",
+            "2026-light": "2026 浅色",
+            dark: "深色",
+            "dark-modern": "现代深色",
+            "2026-dark": "2026 深色",
+          }
+        : {
+            theme: "Theme",
+            chooseTheme: "Choose theme",
+            displayMode: "Display mode",
+            system: "System",
+            currentTheme: "Choose theme, current: ",
+            current: "Current: ",
+            light: "Light",
+            "light-modern": "Light Modern",
+            "2026-light": "2026 Light",
+            dark: "Dark",
+            "dark-modern": "Dark Modern",
+            "2026-dark": "2026 Dark",
+          };
+      const themeGroups = {
+        light: ["light", "light-modern", "2026-light"],
+        dark: ["dark", "dark-modern", "2026-dark"],
+      };
+      for (const [group, options] of Object.entries(themeGroups)) {
+        document.querySelector(
+          `[data-theme-group="${group}"] .theme-options`,
+        ).innerHTML = options
+          .map(
+            (theme) => `<label class="theme-option">
+                <input type="radio" name="theme" value="${theme}" />
+                <span class="theme-preview" data-theme-preview="${theme}" aria-hidden="true">Aa</span>
+                <span class="theme-option-text" data-i18n="${theme}"></span>
+              </label>`,
+          )
+          .join("");
       }
-      setFontSize();
-      window.addEventListener("resize", setFontSize);
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        element.textContent = text[element.dataset.i18n];
+      });
+      document
+        .querySelectorAll(".theme-preview[data-theme-preview]")
+        .forEach((preview) => {
+          const themeName = preview.dataset.themePreview;
+          const theme =
+            themeName === "system" ? themes["2026-light"] : themes[themeName];
+          const previewBackground =
+            themeName === "system"
+              ? `linear-gradient(90deg, ${theme.background} 50%, ${themes["2026-dark"].background} 50%)`
+              : theme.background;
+          preview.style.setProperty("--preview-background", previewBackground);
+          preview.style.setProperty("--preview-foreground", theme.foreground);
+          preview.style.setProperty("--preview-keyword", theme.keyword);
+          preview.style.setProperty("--preview-border", theme.panelBorder);
+        });
+      const themeToggle = document.getElementById("themeToggle");
+      const themePanel = document.getElementById("themePanel");
+      const systemThemeStatus = document.getElementById("systemThemeStatus");
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
+      const themeStorageKey = "js-object-clock-theme";
+
+      function getSavedTheme() {
+        try {
+          const savedTheme = window.localStorage.getItem(themeStorageKey);
+          return savedTheme === "system" ||
+            Object.prototype.hasOwnProperty.call(themes, savedTheme)
+            ? savedTheme
+            : "system";
+        } catch (error) {
+          console.warn("Unable to read the saved theme preference.", error);
+          return "system";
+        }
+      }
+
+      function saveTheme(theme) {
+        try {
+          window.localStorage.setItem(themeStorageKey, theme);
+        } catch (error) {
+          console.warn("Unable to save the theme preference.", error);
+        }
+      }
+
+      function applyTheme(preference) {
+        const systemThemeName = systemTheme.matches
+          ? "2026-dark"
+          : "2026-light";
+        const themeName =
+          preference === "system" ? systemThemeName : preference;
+        const theme = themes[themeName];
+        for (const [property, value] of Object.entries(theme)) {
+          document.documentElement.style.setProperty(
+            `--${property.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`,
+            value,
+          );
+        }
+        document.documentElement.style.colorScheme = themeName.includes("light")
+          ? "light"
+          : "dark";
+        document.documentElement.dataset.theme = themeName;
+        const selectedInput = document.querySelector(
+          `input[name="theme"][value="${preference}"]`,
+        );
+        selectedInput.checked = true;
+        systemThemeStatus.textContent = `${text.current}${text[systemThemeName]}`;
+        const selectedName =
+          preference === "system" ? text.system : text[preference];
+        themeToggle.setAttribute(
+          "aria-label",
+          `${text.currentTheme}${selectedName}`,
+        );
+      }
+
+      themePanel.setAttribute("aria-label", text.chooseTheme);
+      let selectedTheme = getSavedTheme();
+      applyTheme(selectedTheme);
+      document.querySelectorAll('input[name="theme"]').forEach((input) => {
+        input.addEventListener("change", () => {
+          selectedTheme = input.value;
+          saveTheme(selectedTheme);
+          applyTheme(selectedTheme);
+        });
+      });
+      systemTheme.addEventListener("change", () => {
+        if (selectedTheme === "system") {
+          applyTheme(selectedTheme);
+        }
+      });
+
+      themeToggle.addEventListener("click", () => {
+        const isOpen = themeToggle.getAttribute("aria-expanded") === "true";
+        themeToggle.setAttribute("aria-expanded", String(!isOpen));
+        themePanel.hidden = isOpen;
+      });
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".theme-switcher")) {
+          themePanel.hidden = true;
+          themeToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !themePanel.hidden) {
+          themePanel.hidden = true;
+          themeToggle.setAttribute("aria-expanded", "false");
+          themeToggle.focus();
+        }
+      });
       const monthList = [
           "January",
           "February",
@@ -126,9 +600,9 @@
       function updateValue() {
         const clock = getClockData();
         items.forEach(({ key, quoted, node }) => {
-          const newValue = quoted ? `&quot;${clock[key]}&quot;` : clock[key];
-          if (node.innerHTML !== newValue) {
-            node.innerHTML = newValue;
+          const newValue = quoted ? `"${clock[key]}"` : clock[key];
+          if (node.textContent !== newValue) {
+            node.textContent = newValue;
           }
         });
         setTimeout(updateValue, 1000);
